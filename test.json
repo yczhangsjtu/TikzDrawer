@@ -1,0 +1,34 @@
+{
+	"entities":[
+		{
+			"text":"Entity1",
+			"x":0,
+			"y":0
+		},
+		{
+			"text":"Entity2",
+			"x":100,
+			"y":0
+		},
+		{
+			"text":"Entity3",
+			"x":-100,
+			"y":100
+		}
+	],
+	"edges":[
+		{
+			"start":0,
+			"end":1,
+			"arrow":true
+		},
+		{
+			"start":1,
+			"end":2
+		},
+		{
+			"start":2,
+			"end":0
+		}
+	]
+}
