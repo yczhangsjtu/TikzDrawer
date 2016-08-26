@@ -90,6 +90,9 @@ class DrawerFrame(wx.Frame):
     ID_SELECT = 10001
     ID_NODE   = 10002
 
+    NODE_WIDTH  = 80
+    NODE_HEIGHT = 40
+
     def __init__(self,parent,title):
 
         wx.Frame.__init__(self,parent,title=title,size=(800,600))
@@ -98,6 +101,7 @@ class DrawerFrame(wx.Frame):
         self.CreateStatusBar()
         self.graph = Graph()
         self.mode = "select"
+        self.selected = None
 
         filemenu = wx.Menu()
         toolmenu = wx.Menu()
@@ -136,13 +140,29 @@ class DrawerFrame(wx.Frame):
         self.mousex = event.x
         self.mousey = event.y
 
-        if self.mode == "node":
+        if self.mode == "select" or self.mode == "edit":
+            for e in self.graph.entities:
+                if  self.mousex > e.x - DrawerFrame.NODE_WIDTH/2 and\
+                    self.mousex < e.x + DrawerFrame.NODE_WIDTH/2 and\
+                    self.mousey > e.y - DrawerFrame.NODE_HEIGHT/2 and\
+                    self.mousey < e.y + DrawerFrame.NODE_HEIGHT/2:
+                    self.mode = "edit"
+                    self.selected = e
+                    self.Refresh()
+                    self.Update()
+                    return
+            self.mode = "select"
+            self.selected = None
+        elif self.mode == "node":
             entity = Entity(None)
             entity.x = self.mousex
             entity.y = self.mousey
             self.graph.entities.append(entity)
-            self.Refresh()
-            self.Update()
+            self.mode = "edit"
+            self.selected = entity
+
+        self.Refresh()
+        self.Update()
 
     def onMouseMove(self,event):
         self.mousex = event.x
@@ -167,13 +187,23 @@ class DrawerFrame(wx.Frame):
         if self.mode == "node":
             dc.SetBrush(wx.Brush("blue"))
             dc.SetPen(wx.Pen("black"))
-            dc.DrawRectangle(self.mousex-10,self.mousey-10,20,20)
+            dc.DrawRectangle(self.mousex-DrawerFrame.NODE_WIDTH/2,self.mousey-DrawerFrame.NODE_HEIGHT/2,
+                    DrawerFrame.NODE_WIDTH,DrawerFrame.NODE_HEIGHT)
+        elif self.mode == "edit" and self.selected != None:
+            x = self.selected.x
+            y = self.selected.y
+            dc.SetBrush(wx.Brush("white",wx.TRANSPARENT))
+            dc.SetPen(wx.Pen("green"))
+            dc.DrawRectangle(x-DrawerFrame.NODE_WIDTH/2-4,y-DrawerFrame.NODE_HEIGHT/2-4,
+                    DrawerFrame.NODE_WIDTH+8,DrawerFrame.NODE_HEIGHT+8)
 
     def onExit(self,event):
         self.Close(True)
 
     def onNew(self,event):
         self.graph = Graph()
+        self.Refresh()
+        self.Update()
 
     def onSave(self,event):
         self.dirname = ''
@@ -204,7 +234,8 @@ class DrawerFrame(wx.Frame):
         for e in graph.entities:
             dc.SetBrush(wx.Brush(e.background))
             dc.SetPen(wx.Pen(e.border))
-            dc.DrawRectangle(e.x-20,e.y-10,40,20)
+            dc.DrawRectangle(e.x-DrawerFrame.NODE_WIDTH/2,e.y-DrawerFrame.NODE_HEIGHT/2,
+                    DrawerFrame.NODE_WIDTH,DrawerFrame.NODE_HEIGHT)
             dc.SetTextForeground("black")
             dc.DrawText(e.text,e.x,e.y)
 
